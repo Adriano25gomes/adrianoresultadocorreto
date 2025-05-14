@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Previsão de Handicap Asiático</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Sistema de Previsão de Handicap Asiático</h1>
+        
+        <div class="tabs">
+            <button class="tablinks active" onclick="openTab(event, 'previsao')">Fazer Previsão</button>
+            <button class="tablinks" onclick="openTab(event, 'historico')">Histórico</button>
+            <button class="tablinks" onclick="openTab(event, 'dados-api')">Dados da API</button>
+            <button class="tablinks" onclick="openTab(event, 'configuracoes')">Configurações</button>
+            <button class="tablinks" onclick="openTab(event, 'ajuda')">Ajuda</button>
+        </div>
+        
+        <div id="previsao" class="tabcontent" style="display: block;">
+            <h2>Previsão de Handicap Asiático</h2>
+            <div class="panel">
+                <div class="form-group">
+                    <label for="liga">Liga/Competição:</label>
+                    <select id="liga">
+                        <option value="PL">Premier League (Inglaterra)</option>
+                        <option value="PD">La Liga (Espanha)</option>
+                        <option value="BL1">Bundesliga (Alemanha)</option>
+                        <option value="SA">Serie A (Itália)</option>
+                        <option value="FL1">Ligue 1 (França)</option>
+                        <option value="BSA">Brasileirão Série A</option>
+                    </select>
+                    <button class="button api-button" onclick="carregarTimesAPI()">Carregar Times da API</button>
+                </div>
+                
+                <div class="grid-container">
+                    <div>
+                        <div class="form-group">
+                            <label for="time-casa">Time Casa:</label>
+                            <select id="time-casa">
+                                <option value="">Selecione a liga primeiro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Últimos 5 jogos (Casa):</label>
+                            <div id="ultimos-jogos-casa" style="margin-top: 10px;">
+                                Não disponível
+                            </div>
+                            <button class="button small-button" onclick="carregarUltimosJogos('casa')">Carregar da API</button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="form-group">
+                            <label for="time-fora">Time Visitante:</label>
+                            <select id="time-fora">
+                                <option value="">Selecione a liga primeiro</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Últimos 5 jogos (Visitante):</label>
+                            <div id="ultimos-jogos-fora" style="margin-top: 10px;">
+                                Não disponível
+                            </div>
+                            <button class="button small-button" onclick="carregarUltimosJogos('fora')">Carregar da API</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Histórico de confrontos:</label>
+                    <div id="historico-confrontos" style="margin-top: 10px;">
+                        Selecione os times para ver o histórico
+                    </div>
+                    <button class="button small-button" onclick="carregarConfrontosAPI()">Carregar Confrontos da API</button>
+                </div>
+                
+                <h3>Informações da Aposta</h3>
+                <div class="grid-container">
+                    <div class="form-group">
+                        <label for="handicap">Linha de Handicap Asiático:</label>
+                        <select id="handicap">
+                            <option value="2">+2.0 (Casa)</option>
+                            <option value="1.75">+1.75 (Casa)</option>
+                            <option value="1.5">+1.5 (Casa)</option>
+                            <option value="1.25">+1.25 (Casa)</option>
+                            <option value="1">+1.0 (Casa)</option>
+                            <option value="0.75">+0.75 (Casa)</option>
+                            <option value="0.5">+0.5 (Casa)</option>
+                            <option value="0.25">+0.25 (Casa)</option>
+                            <option value="0" selected>0 (Neutro)</option>
+                            <option value="-0.25">-0.25 (Casa)</option>
+                            <option value="-0.5">-0.5 (Casa)</option>
+                            <option value="-0.75">-0.75 (Casa)</option>
+                            <option value="-1">-1.0 (Casa)</option>
+                            <option value="-1.25">-1.25 (Casa)</option>
+                            <option value="-1.5">-1.5 (Casa)</option>
+                            <option value="-1.75">-1.75 (Casa)</option>
+                            <option value="-2">-2.0 (Casa)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="odds-casa">Odds Casa:</label>
+                        <input type="number" id="odds-casa" step="0.01" min="1" value="1.90">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="odds-fora">Odds Visitante:</label>
+                        <input type="number" id="odds-fora" step="0.01" min="1" value="1.90">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="valor-aposta">Valor da Aposta (opcional):</label>
+                        <input type="number" id="valor-aposta" step="1" min="0" value="100">
+                    </div>
+                </div>
+                
+                <button class="button" onclick="fazerPrevisao()">Fazer Previsão</button>
+                <div class="loader" id="loader"></div>
+                
+                <div id="resultado-previsao" style="margin-top: 20px; display: none;">
+                    <h3>Resultado da Previsão</h3>
+                    <div class="result" id="resultado-container">
+                        <!-- Aqui vai o resultado -->
+                    </div>
+                    
+                    <div id="detalhes-previsao" style="margin-top: 15px;">
+                        <h4>Detalhes da Análise</h4>
+                        <table>
+                            <tr>
+                                <th>Fator</th>
+                                <th>Time Casa</th>
+                                <th>Time Visitante</th>
+                                <th>Impacto</th>
+                            </tr>
+                            <tbody id="tabela-detalhes">
+                                <!-- Aqui vão os detalhes -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Nova aba para visualizar os dados da API -->
+        <div id="dados-api" class="tabcontent">
+            <h2>Dados da API de Futebol</h2>
+            <div class="panel">
+                <div class="form-group">
+                    <label for="api-endpoint">Endpoint da API:</label>
+                    <select id="api-endpoint">
+                        <option value="teams">Times por Liga</option>
+                        <option value="matches">Partidas Recentes</option>
+                        <option value="standings">Classificação</option>
+                        <option value="matches/head2head">Confrontos Diretos</option>
+                    </select>
+                    
+                    <div class="form-group">
+                        <label for="api-liga">Liga para Consulta:</label>
+                        <select id="api-liga">
+                            <option value="PL">Premier League (Inglaterra)</option>
+                            <option value="PD">La Liga (Espanha)</option>
+                            <option value="BL1">Bundesliga (Alemanha)</option>
+                            <option value="SA">Serie A (Itália)</option>
+                            <option value="FL1">Ligue 1 (França)</option>
+                            <option value="BSA">Brasileirão Série A</option>
+                        </select>
+                    </div>
+                    
+                    <button class="button" onclick="consultarAPI()">Consultar API</button>
+                </div>
+                
+                <div class="api-status" id="api-status">
+                    Status da API: <span class="status-badge" id="status-indicator">Não consultada</span>
+                </div>
+                
+                <div class="api-result" id="api-result">
+                    <h3>Resultado da Consulta</h3>
+                    <div class="code-container">
+                        <pre id="api-json">Consulte a API para ver os resultados aqui.</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="historico" class="tabcontent">
+            <h2>Histórico de Previsões</h2>
+            <div class="panel">
+                <table id="tabela-historico">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Partida</th>
+                            <th>Handicap</th>
+                            <th>Previsão</th>
+                            <th>Resultado Real</th>
+                            <th>Retorno</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Histórico será adicionado pelo JavaScript -->
+                    </tbody>
+                </table>
+                
+                <div class="chart-container">
+                    <canvas id="grafico-desempenho"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div id="configuracoes" class="tabcontent">
+            <h2>Configurações do Modelo</h2>
+            <div class="panel">
+                <h3>Parâmetros do Modelo</h3>
+                <div class="form-group">
+                    <label for="limiar-decisao">Limiar de Decisão:</label>
+                    <input type="number" id="limiar-decisao" step="0.05" min="0" max="1" value="0.20">
+                    <small>Quanto maior o valor, mais conservador será o modelo (menos apostas, maior confiança)</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="peso-form-recente">Peso da Forma Recente:</label>
+                    <input type="number" id="peso-form-recente" step="0.05" min="0" max="2" value="1.00">
+                    <small>Quanto maior o valor, mais peso será dado aos jogos recentes</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="peso-confrontos">Peso dos Confrontos Diretos:</label>
+                    <input type="number" id="peso-confrontos" step="0.05" min="0" max="2" value="0.70">
+                    <small>Quanto maior o valor, mais peso será dado ao histórico de confrontos diretos</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="estrategia-stake">Estratégia de Stake:</label>
+                    <select id="estrategia-stake">
+                        <option value="fixo">Stake Fixo</option>
+                        <option value="kelly">Critério de Kelly</option>
+                        <option value="kelly-fracionario">Kelly Fracionário (50%)</option>
+                    </select>
+                </div>
+                
+                <h3>Configurações da API</h3>
+                <div class="form-group">
+                    <label for="api-key">Chave da API (API Token):</label>
+                    <input type="text" id="api-key" placeholder="Insira seu token da API Football-Data.org aqui">
+                    <small>Necessária para fazer consultas à API de futebol</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="limite-requisicoes">Plano da API:</label>
+                    <select id="plano-api" disabled>
+                        <option value="free">Gratuito (10 chamadas/min)</option>
+                        <option value="tier1">Tier 1</option>
+                        <option value="tier2">Tier 2</option>
+                    </select>
+                    <small>O plano é detectado automaticamente com base no seu token</small>
+                </div>
+                
+                <button class="button" onclick="salvarConfiguracoes()">Salvar Configurações</button>
+            </div>
+        </div>
+        
+        <div id="ajuda" class="tabcontent">
+            <h2>Ajuda e Instruções</h2>
+            <div class="panel">
+                <h3>Como usar o sistema</h3>
+                <p>Este sistema ajuda a fazer previsões para apostas de Handicap Asiático no futebol usando dados reais de APIs.</p>
+                
+                <h4>Integrações com API</h4>
+                <p>O sistema usa a API Football-Data.org para obter dados reais sobre times, jogos e estatísticas. Para utilizar esta funcionalidade:</p>
+                <ol>
+                    <li>Obtenha uma chave de API (token) em <a href="https://www.football-data.org/" target="_blank">football-data.org</a></li>
+                    <li>Insira seu token na seção de Configurações</li>
+                    <li>Use os botões "Carregar da API" para buscar dados reais</li>
+                </ol>
+                
+                <h4>Limites da API</h4>
+                <p>O plano gratuito da Football-Data.org permite até 10 chamadas por minuto. Utilize com moderação para não ultrapassar seu limite.</p>
+                
+                <h4>Sobre Handicap Asiático</h4>
+                <p>O Handicap Asiático é um tipo de aposta que "equilibra" o jogo, dando vantagem ou desvantagem a um dos times. Por exemplo:</p>
+                <ul>
+                    <li><strong>-1.0 (Casa):</strong> O time da casa começa com 1 gol de desvantagem</li>
+                    <li><strong>+0.5 (Casa):</strong> O time da casa começa com meio gol de vantagem</li>
+                    <li><strong>0 (Neutro):</strong> Sem vantagem para nenhum time (Asian Draw)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
